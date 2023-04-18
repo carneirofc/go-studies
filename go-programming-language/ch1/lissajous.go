@@ -1,3 +1,5 @@
+// This siple program will generate gifs of Lissajous figures
+// http://www.fotoacustica.fis.ufba.br/daniele/FIS3/roteiro%208%20oscilosc%C3%B3pio%20Digital%20FigurasLissajous.pdf
 package main
 
 import (
@@ -10,6 +12,7 @@ import (
 	"math"
 	"math/rand"
 	"net/http"
+	"net/url"
 	"os"
 	"strconv"
 	"time"
@@ -32,8 +35,8 @@ type LissajousConfig struct {
 	Frequency         float64
 }
 
-func LissajousConfigCreate() LissajousConfig {
-	config := LissajousConfig{}
+func LissajousConfigCreate() *LissajousConfig {
+	config := &LissajousConfig{}
 	config.NFrames = 120
 	config.OscilatoroCycles = 10
 	config.FrameTimeMs = 10
@@ -76,40 +79,56 @@ func Lissajous(fouot io.Writer, config *LissajousConfig) {
 	gif.EncodeAll(fouot, &anim)
 }
 
-// This siple program will generate gifs of Lissajous figures
-// http://www.fotoacustica.fis.ufba.br/daniele/FIS3/roteiro%208%20oscilosc%C3%B3pio%20Digital%20FigurasLissajous.pdf
+func getInt(key string, form url.Values) (int, error) {
+	if v, ok := form[key]; ok == true {
+		v, err := strconv.Atoi(v[0])
+		if err != nil {
+			log.Print(err)
+		}
+		return v, nil
+	}
+	return 0, fmt.Errorf("not found")
+}
+
+func getFloat(key string, form url.Values) (float64, error) {
+	if v, ok := form[key]; ok == true {
+		v, err := strconv.ParseFloat(v[0], 64)
+		if err != nil {
+			log.Print(err)
+		}
+
+		return v, nil
+	}
+	return 0.0, fmt.Errorf("not found")
+}
+
 func handler(w http.ResponseWriter, r *http.Request) {
 	config := LissajousConfigCreate()
 
 	if err := r.ParseForm(); err == nil {
 		form := r.Form
-		if v, ok := form["NFrames"]; ok == true {
-			v, err := strconv.Atoi(v[0])
-			if err != nil {
-				log.Print(err)
-			}
+
+		if v, err := getInt("NFrames", form); err == nil && v > 0 {
 			config.NFrames = v
 		}
-
-		if v, ok := form["Frequency"]; ok == true {
-			v, err := strconv.ParseFloat(v[0], 64)
-			if err != nil {
-				log.Print(err)
-			}
+		if v, err := getFloat("Frequency", form); err == nil {
 			config.Frequency = v
 		}
-
-		/*
-		   NFrames           int
-		   AngularResolution float64
-		   ImageSize         int
-		   FrameTimeMs       int
-		   OscilatoroCycles  float64
-		   Frequency         float64
-		*/
+		if v, err := getInt("ImageSize", form); err == nil && v > 0 {
+			config.ImageSize = v
+		}
+		if v, err := getFloat("OscilatoroCycles", form); err == nil && v > 0 {
+			config.OscilatoroCycles = v
+		}
+		if v, err := getFloat("AngularResolution", form); err == nil && v > 0 {
+			config.AngularResolution = v
+		}
+		if v, err := getInt("FrameTimeMs", form); err == nil && v > 0 {
+			config.FrameTimeMs = v
+		}
 	}
-	fmt.Fprintf(os.Stdout, "%v\n", config)
-	Lissajous(w, &config)
+	fmt.Fprintf(os.Stdout, "Config: %v\n", config)
+	Lissajous(w, config)
 }
 
 func main() {
@@ -117,6 +136,7 @@ func main() {
 	// Lissajous(os.Stdout)
 
 	listen := "localhost:3000"
+
 	http.HandleFunc("/", handler)
 
 	fmt.Fprintf(os.Stdout, "Listening on '%s'\n", listen)
@@ -124,5 +144,4 @@ func main() {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
 	}
-
 }
