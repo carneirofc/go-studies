@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -45,7 +44,37 @@ func getHttpClient() http.Client {
 	return client
 }
 
-func DownloadTag() {
+func Get(urlStr string, headers map[string]string, params map[string]string) ([]byte, error) {
+	var err error
+	client := getHttpClient()
+	req, err := http.NewRequest("GET", urlStr, nil)
+	if err != nil {
+		return nil, err
+	}
+	for k, v := range headers {
+		req.Header.Add(k, v)
+	}
+
+	query := url.Values{}
+	for k, v := range params {
+		query.Add(k, v)
+	}
+	req.URL.RawQuery = query.Encode()
+
+	res, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	if res.StatusCode != 200 {
+		return nil, fmt.Errorf("request '%s' status '%s'\n", gitApiBaseUrl(), res.Status)
+	}
+	data, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	return data, nil
 }
 
 func ParseGitReleases(data []byte) ([]Release, error) {
@@ -57,45 +86,61 @@ func ParseGitReleases(data []byte) ([]Release, error) {
 	return releases, nil
 }
 
+/*
+*  /repos/{owner}/{repo}/releases/tags/{tag}
+ */
 func GetReleaseByTag(tag string) (*Release, error) {
 	if strings.TrimSpace(tag) == "" {
 		return nil, fmt.Errorf("tag cannot be empty or whitespaces")
 	}
-	log.Fatal("not impplemented!")
-	return nil, nil
+	url := fmt.Sprintf("%s/repos/%s/%s/releases/tags/%s", gitApiBaseUrl(), "neovim", "neovim", tag)
+
+	headers := make(map[string]string)
+	headers["Accept"] = "application/vnd.github+json"
+	headers["X-GitHub-Api-Version"] = "2022-11-28"
+
+	projection := func(data []byte) (*Release, error) {
+		var release Release
+		err := json.Unmarshal(data, &release)
+		if err != nil {
+			return nil, err
+		}
+		return &release, nil
+	}
+
+	data, err := Get(url, headers, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed http request %s:%v", url, err)
+	}
+	parsed, err := projection(data)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse http request %s:%v", url, err)
+	}
+	return parsed, nil
+
 }
 
 func ListReleases(count int) ([]Release, error) {
 	if count < 0 || count > 100 {
 		return nil, fmt.Errorf("count must be between 1 and 100\n")
 	}
-	client := getHttpClient()
-	req, err := http.NewRequest("GET", gitApiBaseUrl()+"/repos/neovim/neovim/releases", nil)
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Add("Accept", "application/vnd.github+json")
-	req.Header.Add("X-GitHub-Api-Version", "2022-11-28")
 
-	query := url.Values{}
-	query.Add("per_page", fmt.Sprint(count))
-	req.URL.RawQuery = query.Encode()
-	res, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	if res.StatusCode != 200 {
-		return nil, fmt.Errorf("request to '%s' return with status code '%s'\n", gitApiBaseUrl(), res.Status)
-	}
-	data, err := io.ReadAll(res.Body)
-	if err != nil {
-		return nil, err
-	}
-	defer res.Body.Close()
+	url := gitApiBaseUrl() + "/repos/neovim/neovim/releases"
+	headers := make(map[string]string)
+	headers["Accept"] = "application/vnd.github+json"
+	headers["X-GitHub-Api-Version"] = "2022-11-28"
 
-	releases, err := ParseGitReleases(data)
+	params := make(map[string]string)
+	params["per_page"] = fmt.Sprint(count)
+
+	data, err := Get(url, headers, params)
 	if err != nil {
 		return nil, err
 	}
-	return releases, nil
+
+	parsed, err := ParseGitReleases(data)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse http request %s:%v", url, err)
+	}
+	return parsed, nil
 }

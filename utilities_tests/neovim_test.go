@@ -7,6 +7,18 @@ import (
 	neovim "github.com/carneirofc/go-studies/utilities"
 )
 
+func Test_NeovimReleaseGet(t *testing.T) {
+	release, err := neovim.GetReleaseByTag("nightly")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if release.TagName != "nightly" {
+		t.Fatal("failed to get content from github")
+	}
+	// s, _ := json.MarshalIndent(release, "", "\t")
+	// t.Logf("\n%s\n", s)
+}
+
 func Test_NeovimReleasesGet(t *testing.T) {
 	releases, err := neovim.ListReleases(2)
 	if err != nil {
