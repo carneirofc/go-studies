@@ -1,11 +1,9 @@
-package test
+package azdevops
 
 import (
 	"io"
 	"os"
 	"testing"
-
-	"github.com/carneirofc/go-studies/azdevops"
 )
 
 func compareFmtCommand(t *testing.T, inp string, expect string, f func(string)) {
@@ -42,5 +40,5 @@ func compareFmtCommand(t *testing.T, inp string, expect string, f func(string)) 
 }
 
 func Test_etc(t *testing.T) {
-	compareFmtCommand(t, "command type log", "##[command]command type log\n", azdevops.LogFmtCommand)
+	compareFmtCommand(t, "command type log", "##[command]command type log\n", LogFmtCommand)
 }

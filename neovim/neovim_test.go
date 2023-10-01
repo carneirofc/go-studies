@@ -1,14 +1,12 @@
-package test
+package neovim
 
 import (
 	"os"
 	"testing"
-
-	"github.com/carneirofc/go-studies/neovim"
 )
 
 func Test_NeovimReleaseGet(t *testing.T) {
-	release, err := neovim.GetReleaseByTag("nightly")
+	release, err := GetReleaseByTag("nightly")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -20,7 +18,7 @@ func Test_NeovimReleaseGet(t *testing.T) {
 }
 
 func Test_NeovimReleasesGet(t *testing.T) {
-	releases, err := neovim.ListReleases(2)
+	releases, err := ListReleases(2)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -31,13 +29,13 @@ func Test_NeovimReleasesGet(t *testing.T) {
 }
 
 func Test_GitReleases(t *testing.T) {
-	filename := "mock.json"
+	filename := "./neovim_test_mock.json"
 
 	bytes, err := os.ReadFile(filename)
 	if err != nil {
 		t.Fatal(err)
 	}
-	releases, err := neovim.ParseGitReleases(bytes)
+	releases, err := ParseGitReleases(bytes)
 	if err != nil {
 		t.Fatal(err)
 	}

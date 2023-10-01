@@ -1,4 +1,4 @@
-package test
+package utilities
 
 import (
 	"bytes"
@@ -7,13 +7,11 @@ import (
 	"net/http"
 	"os"
 	"testing"
-
-	"github.com/carneirofc/go-studies/utilities"
 )
 
 func Test_Formatting(t *testing.T) {
-	t.Log(utilities.FormatSize(int64(1024 * 100)))
-	t.Log(utilities.FormatSizeBit(int64(1024 * 100)))
+	t.Log(FormatSize(int64(1024 * 100)))
+	t.Log(FormatSizeBit(int64(1024 * 100)))
 }
 
 func Test_DownloadFile(t *testing.T) {
@@ -34,11 +32,11 @@ func Test_DownloadFile(t *testing.T) {
 	urlStr := "https://github.com/neovim/neovim/releases/download/nightly/nvim.appimage.sha256sum"
 	t.Logf("downloading contents into %s", fd.Name())
 
-	n, err := utilities.DownloadFile(http.DefaultClient, urlStr, fd)
+	n, err := DownloadFile(http.DefaultClient, urlStr, fd)
 	if err != nil {
 		t.Errorf("failed to download file from %s:%v", urlStr, err)
 	}
-	t.Logf("downloaded %s", utilities.FormatSizeBit(n))
+	t.Logf("downloaded %s", FormatSizeBit(n))
 	fd.Close()
 
 	// Downloaing executable
@@ -50,16 +48,16 @@ func Test_DownloadFile(t *testing.T) {
 	urlStr = "https://github.com/neovim/neovim/releases/download/nightly/nvim.appimage"
 	t.Logf("downloading contents into %s", fd.Name())
 
-	n, err = utilities.DownloadFile(http.DefaultClient, urlStr, fd)
+	n, err = DownloadFile(http.DefaultClient, urlStr, fd)
 	if err != nil {
 		t.Errorf("failed to download file from %s:%v", urlStr, err)
 	}
-	t.Logf("downloaded %s", utilities.FormatSizeBit(n))
+	t.Logf("downloaded %s", FormatSizeBit(n))
 }
 
 func Test_ExistsInPath(t *testing.T) {
 	name := "nvim"
-	instances, err := utilities.FindInPath(name)
+	instances, err := FindInPath(name)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -71,7 +69,7 @@ func Test_ExistsInPath(t *testing.T) {
 func Test_CalcSystemSha(t *testing.T) {
 	// "https://github.com/neovim/neovim/releases/download/nightly/nvim.appimage"
 	// "https://github.com/neovim/neovim/releases/download/nightly/nvim.appimage.sha256sum"
-	instances, err := utilities.FindInPath("nvim")
+	instances, err := FindInPath("nvim")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -85,13 +83,13 @@ func Test_CalcSystemSha(t *testing.T) {
 			t.Errorf("path %s : %v", fpath, err)
 		}
 
-		sha, err := utilities.CalcSha(fp)
+		sha, err := CalcSha(fp)
 		if err != nil {
 			t.Fatalf("failed to calc sha %v", err)
 		}
 		fp.Close()
 
-		t.Logf("%s\t%s\t%x", fpath, utilities.FormatSizeBit(stat.Size()), sha)
+		t.Logf("%s\t%s\t%x", fpath, FormatSizeBit(stat.Size()), sha)
 	}
 }
 
@@ -113,7 +111,7 @@ func Test_CalcSha(t *testing.T) {
 	}
 	defer fp.Close()
 
-	shab, err := utilities.CalcSha(fp)
+	shab, err := CalcSha(fp)
 	if err != nil {
 		t.Error(err)
 	}
