@@ -1,4 +1,4 @@
-package main
+package ch2
 
 import (
 	"flag"
@@ -9,7 +9,7 @@ import (
 var n = flag.Bool("n", false, "omit trailing newline")
 var sep = flag.String("s", " ", "separator")
 
-func main() {
+func Echo() {
 	flag.Parse()
 
 	fmt.Print(strings.Join(flag.Args(), *sep))

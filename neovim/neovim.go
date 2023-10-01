@@ -3,33 +3,11 @@ package neovim
 import (
 	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
-	"net/url"
 	"os"
 	"strings"
-	"time"
+
+	"github.com/carneirofc/go-studies/utilities"
 )
-
-type Assets struct {
-	ContentType        string `json:"content_type"`
-	Size               int32  `json:"size"`
-	Name               string `json:"name"`
-	Url                string `json:"url"`
-	BrowserDownloadUrl string `json:"browser_download_url"`
-}
-
-type Release struct {
-	TagName      string    `json:"tag_name"`
-	Url          string    `json:"url"`
-	HtmlUrl      string    `json:"html_url"`
-	AssetsUrl    string    `json:"assets_url"`
-	Id           int32     `json:"id"`
-	IsPreRelease bool      `json:"prerelease"`
-	CreatedAt    time.Time `json:"created_at"`
-	PublishedAt  time.Time `json:"published_at"`
-	Assets       []Assets  `json:"assets"`
-}
 
 func gitApiBaseUrl() string {
 	url := os.Getenv("GIT_API_URL")
@@ -37,44 +15,6 @@ func gitApiBaseUrl() string {
 		return url
 	}
 	return "https://api.github.com"
-}
-
-func getHttpClient() http.Client {
-	client := http.Client{}
-	return client
-}
-
-func Get(urlStr string, headers map[string]string, params map[string]string) ([]byte, error) {
-	var err error
-	client := getHttpClient()
-	req, err := http.NewRequest("GET", urlStr, nil)
-	if err != nil {
-		return nil, err
-	}
-	for k, v := range headers {
-		req.Header.Add(k, v)
-	}
-
-	query := url.Values{}
-	for k, v := range params {
-		query.Add(k, v)
-	}
-	req.URL.RawQuery = query.Encode()
-
-	res, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	if res.StatusCode != 200 {
-		return nil, fmt.Errorf("request '%s' status '%s'\n", gitApiBaseUrl(), res.Status)
-	}
-	data, err := io.ReadAll(res.Body)
-	if err != nil {
-		return nil, err
-	}
-	defer res.Body.Close()
-
-	return data, nil
 }
 
 func ParseGitReleases(data []byte) ([]Release, error) {
@@ -108,7 +48,7 @@ func GetReleaseByTag(tag string) (*Release, error) {
 		return &release, nil
 	}
 
-	data, err := Get(url, headers, nil)
+	data, err := utilities.Get(url, headers, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed http request %s:%v", url, err)
 	}
@@ -133,7 +73,7 @@ func ListReleases(count int) ([]Release, error) {
 	params := make(map[string]string)
 	params["per_page"] = fmt.Sprint(count)
 
-	data, err := Get(url, headers, params)
+	data, err := utilities.Get(url, headers, params)
 	if err != nil {
 		return nil, err
 	}

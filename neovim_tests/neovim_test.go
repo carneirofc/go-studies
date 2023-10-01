@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	neovim "github.com/carneirofc/go-studies/utilities"
+	"github.com/carneirofc/go-studies/neovim"
 )
 
 func Test_NeovimReleaseGet(t *testing.T) {
