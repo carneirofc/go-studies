@@ -16,3 +16,18 @@ The gif bellow was generated and served using the program [./go-programming-lang
 ![lissajous gif](./docs/ch1/lissajous.gif)
 
 ### Chapter 2
+
+## Notes
+###  Build
+On should not specify the direct file path when building something. Point it to the module instead *~the directory~* !
+
+```command
+go build ./cmd/nvim-man/
+```
+
+### Tests
+The same applies to tests, always specify a directory. One might consider changing the directory into the module itself and run the tests from there.
+
+```command
+go test -v ./utilities_tests/
+```

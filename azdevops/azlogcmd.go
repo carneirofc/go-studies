@@ -1,8 +1,8 @@
+// A series of utilities so I can build simple CI/CD tools for Azure DevOps
 package azdevops
 
 import (
 	"fmt"
-	"log"
 	"strings"
 )
 
@@ -58,32 +58,4 @@ func LogIssueErrorSource(message string, linenumber int, columnnumber int, code 
 }
 func LogIssueWarningSource(message string, linenumber int, columnnumber int, code int) {
 	fmt.Printf("##vso[task.logissue type=warning;linenumber=%d;columnnumber=%d;code=%d;]%s\n", linenumber, columnnumber, code, message)
-}
-
-func main() {
-	LogIssueWarning("Hello from go!")
-	LogIssueError("Hello from go!")
-	LogIssueWarningSource("Hello from go!", 1, 10, -1)
-	LogIssueErrorSource("Hello from go!", 1, 10, -1)
-
-	if err := SetVariable(SetVariableArgs{Content: "a simple content with the default opts"}); err != nil {
-		log.Printf("%v\n", err)
-	}
-
-	if err := SetVariable(SetVariableArgs{
-		Variable: "asd",
-		Content:  "a simple content with the default opts",
-	}); err != nil {
-		log.Printf("%v\n", err)
-	}
-
-	if err := SetVariable(SetVariableArgs{
-		Variable:   "asd",
-		Content:    "a simple content with the default opts",
-		IsSecret:   true,
-		IsOutput:   true,
-		IsReadonly: true,
-	}); err != nil {
-		log.Printf("%v\n", err)
-	}
 }

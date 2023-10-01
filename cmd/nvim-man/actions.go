@@ -6,21 +6,31 @@ import (
 	"runtime"
 	"strings"
 
-	neovim "github.com/carneirofc/go-studies/neovim"
+	"github.com/carneirofc/go-studies/neovim"
 )
 
-func main() {
-	data, err := neovim.GetReleaseByTag("nightly")
+func list() {
+	data, err := neovim.ListReleases(config.ListCount)
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, d := range data {
+		fmt.Printf("%s\t%s\n", d.HtmlUrl, d.PublishedAt)
+	}
+}
+
+func get() {
+	data, err := neovim.GetReleaseByTag(config.Tag)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	fmt.Println(data.HtmlUrl)
+	fmt.Printf("listing content from %s\n", data.HtmlUrl)
 
 	if runtime.GOARCH != "amd64" {
 		log.Fatalf("unsupported architecture %s\n", runtime.GOARCH)
 	}
 
-	isValidAsset := func(v neovim.Asset) bool {
+	assetFilterForPlatform := func(v neovim.Asset) bool {
 		if !(runtime.GOOS == "windows") && !(runtime.GOOS == "linux") {
 			return false
 		}
@@ -39,12 +49,12 @@ func main() {
 	}
 
 	for _, v := range data.Assets {
-		if !isValidAsset(v) {
+		if !assetFilterForPlatform(v) {
 			continue
 		}
 
 		fmt.Println(v.BrowserDownloadUrl)
 	}
 	// TODO: Impplement download and checksum validation if exists
-
+	log.Fatalln("TODO: Impplement download and checksum validation if exists")
 }
