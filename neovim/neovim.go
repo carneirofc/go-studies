@@ -9,7 +9,14 @@ import (
 	"github.com/carneirofc/go-studies/utilities"
 )
 
-func gitApiBaseUrl() string {
+func GitBaseUrl() string {
+	url := os.Getenv("GIT_BASE_URL")
+	if url != "" {
+		return url
+	}
+	return "https://github.com"
+}
+func GitApiBaseUrl() string {
 	url := os.Getenv("GIT_API_URL")
 	if url != "" {
 		return url
@@ -33,7 +40,7 @@ func GetReleaseByTag(tag string) (*Release, error) {
 	if strings.TrimSpace(tag) == "" {
 		return nil, fmt.Errorf("tag cannot be empty or whitespaces")
 	}
-	url := fmt.Sprintf("%s/repos/%s/%s/releases/tags/%s", gitApiBaseUrl(), "neovim", "neovim", tag)
+	url := fmt.Sprintf("%s/repos/%s/%s/releases/tags/%s", GitApiBaseUrl(), "neovim", "neovim", tag)
 
 	headers := make(map[string]string)
 	headers["Accept"] = "application/vnd.github+json"
@@ -65,7 +72,7 @@ func ListReleases(count int) ([]Release, error) {
 		return nil, fmt.Errorf("count must be between 1 and 100\n")
 	}
 
-	url := gitApiBaseUrl() + "/repos/neovim/neovim/releases"
+	url := GitApiBaseUrl() + "/repos/neovim/neovim/releases"
 	headers := make(map[string]string)
 	headers["Accept"] = "application/vnd.github+json"
 	headers["X-GitHub-Api-Version"] = "2022-11-28"
