@@ -31,3 +31,7 @@ The same applies to tests, always specify a directory. One might consider changi
 ```command
 go test -v ./utilities_tests/
 ```
+
+## References
+
+* gobyexample https://gobyexample.com/
